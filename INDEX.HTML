@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MG STORE</title>
+<style>
+body{background:#0b0f1f;margin:0;font-family:'Poppins',sans-serif;color:#fff;}
+.card{width:95%;max-width:1200px;margin:20px auto;background:linear-gradient(to top right,#07102d,#3a3c54);padding:25px;border-radius:20px;display:flex;flex-direction:column;}
+.store-title{font-size:28px;font-weight:800;color:#488aec;margin-bottom:10px;}
+.welcome,.section-title{font-size:16px;margin-bottom:15px;}
+.buttons{display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;}
+.button{border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;border:none;}
+.buy{background:#488aec;color:#fff;}
+.buy:hover{background:#3a6fc2;}
+.order{background:#fff;color:#000;}
+.order:hover{background:#eaeaea;}
+.shop-container{display:flex;gap:20px;align-items:flex-start;}
+.products{flex:2;max-height:600px;overflow-y:auto;padding-right:5px;}
+.product{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 15px;margin:8px 0;font-size:16px;font-weight:600;}
+.quantity-controls{display:flex;align-items:center;gap:6px;}
+.quantity-controls button{background:#488aec;color:#fff;border:none;border-radius:5px;padding:5px 10px;cursor:pointer;font-size:16px;font-weight:bold;}
+.quantity-controls span{min-width:25px;text-align:center;display:inline-block;}
+.cart-wrapper{flex:1;position:sticky;top:0;align-self:flex-start;}
+.cart{background:rgba(255,255,255,0.05);border-radius:10px;padding:10px;max-height:600px;overflow-y:auto;}
+.cart-item{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.08);padding:8px;border-radius:8px;margin-bottom:6px;font-size:14px;}
+.cart-item button{background:none;border:none;color:#ff6b6b;font-size:18px;cursor:pointer;}
+.empty-cart{text-align:center;color:#aaa;margin-top:20px;}
+.total-price{background:#488aec;padding:6px 12px;border-radius:8px;font-weight:700;font-size:16px;margin-bottom:10px;text-align:center;}
+input{width:100%;padding:8px;border-radius:8px;border:none;margin-bottom:10px;}
+input:focus{outline:2px solid #488aec;}
+#search{margin-bottom:15px;padding:8px;width:100%;border-radius:8px;border:none;}
+.hidden{display:none;}
+@media(max-width:768px){.shop-container{flex-direction:column}.cart-wrapper{position:relative;max-height:300px;margin-top:20px}}
+</style>
+</head>
+<body>
+<div class="card" id="home">
+  <div class="store-title">MG STORE</div>
+  <div class="welcome">مرحبًا بكم في MG STORE!<br>متجر متخصص في بيع الحلويات بالجملة 🍬🍫</div>
+  <div class="buttons">
+    <button class="button buy" onclick="showSection('shopSection')">اشترِ الآن</button>
+    <button class="button order" onclick="showSection('orderSection')">طريقة الطلب</button>
+  </div>
+</div>
+
+<div id="orderSection" class="card hidden">
+  <div class="section-title">طريقة الطلب 🛍️</div>
+  <div class="steps">1️⃣ اضغط على زر <strong>اشترِ الآن</strong>.<br>2️⃣ اختر المنتجات والكميات.<br>3️⃣ تحقق من السلة على الجانب.<br>4️⃣ اضغط <strong>تأكيد الطلب</strong> لإتمام البيانات.<br>5️⃣ أدخل معلوماتك وسيتم التواصل معك للتوصيل.<br></div><br>
+  <button class="button order" onclick="showSection('home')">رجوع</button>
+</div>
+
+<div id="shopSection" class="card hidden">
+  <div class="section-title">اختيار المنتجات 🍭</div>
+  <div class="shop-container">
+    <div class="products">
+      <input type="text" id="search" placeholder="ابحث عن المنتج..." onkeyup="filterProducts()">
+      <div id="productList"></div>
+    </div>
+    <div class="cart-wrapper">
+      <div class="total-price" id="totalPrice">0 دج</div>
+      <div class="cart" id="cartList"><div class="empty-cart">السلة فارغة حالياً</div></div>
+    </div>
+  </div><br>
+  <button class="button buy" onclick="showCustomerForm()">تأكيد الطلب</button>
+  <button class="button order" onclick="showSection('home')">رجوع</button>
+</div>
+
+<div id="customerSection" class="card hidden">
+  <div class="section-title">معلومات المشتري 📝</div>
+  <input type="text" id="firstName" placeholder="الاسم">
+  <input type="text" id="lastName" placeholder="اللقب">
+  <input type="text" id="address" placeholder="العنوان">
+  <input type="text" id="phone" placeholder="رقم الهاتف">
+  <button class="button buy" onclick="submitOrder()">إرسال الطلب</button>
+  <button class="button order" onclick="showSection('shopSection')">رجوع</button>
+</div>
+
+<script>
+const products=
+[{name:"برينو كبير شوكو",price:600},
+{name:"برينو كبير ازرق",price:600},
+{name:"برينو كبير مشمش",price:600},
+{name:"برينو كبير اخضر",price:600},
+{name:"مونتوس 200",price:200},
+{name:"مونتيكو 200",price:200},
+{name:"هوليبو كبيرة",price:1200},
+{name:"هوليبو صغيرة",price:210},
+{name:"هوبكس ازرق",price:590},
+{name:"هوبكس بنفسجي",price:590},
+{name:"هوبكس احمر",price:590},
+{name:"هوبكس اصفر",price:590},
+{name:"هوبكس اسود",price:590},
+{name:"موسكيتو باستي",price:160},
+{name:"موسكيتو قرعة",price:145},
+{name:"لوف مي",price:200},
+{name:"موفي",price:780},
+{name:"نوقة احلام",price:200},
+{name:"لام اسكو",price:1100},
+{name:"لام جيلات",price:1800},
+{name:"لام شامبيون",price:750},
+{name:"لام صاني",price:1600},
+{name:"لام سيلفر",price:1300},
+{name:"لام سيبار",price:1700},
+{name:"لام سيبار مقصوص",price:450},
+{name:"ماء قديلة 1.5ل",price:190},
+{name:"ماماميا حار",price:720},
+{name:"ماماميا جبن",price:720},
+{name:"ماماميا شواء",price:720},
+{name:"ماماميا طماطم",price:720},
+{name:"ماماميا خضراء",price:710},
+{name:"ماء لالة لويزة 1.5ل",price:175},
+{name:"هابي",price:850},
+{name:"مالدا بلارة",price:600},
+{name:"لامبة لاد 15 واط",price:800},
+{name:"لامبة لاد 9 واط",price:1100},
+{name:"لامبة لاد 7 واط",price:100},
+{name:"لامبة برايت",price:500},
+{name:"لامبة لاد 12 واط",price:1250},
+{name:"شيكولا دايبة مابيلا",price:410},
+{name:"ناتس فود",price:520},
+{name:"ماي كاندي",price:500},
+{name:"مايلا لوز كاجو جوز",price:135},
+{name:"مايلا فستق",price:170},
+{name:"ماجور",price:90},
+{name:"ماجور بليس",price:40},
+{name:"مادلين موفينز شوكولا",price:780},
+{name:"مادلين موفينز مشمش",price:780},
+{name:"مادلين موفينز فراولة",price:780},
+{name:"ماجيك قوم ازرق",price:460},
+{name:"ماجيك قوم اخضر",price:460},
+{name:"ماجيك قوم احمر",price:460},
+{name:"شوكولا نايس",price:200},
+{name:"نايس طابلة",price:70},
+{name:"مايكو",price:420},
+{name:"ماريو قومي",price:900},
+{name:"ماريجة",price:900},
+{name:"مارشملو ماشا",price:380},
+{name:"مارشملو الخروف",price:430},
+{name:"مارشمالو بلايطا",price:100},
+{name:"مارشمالو رمان",price:430},
+{name:"مارشمالو دانيال",price:550},
+{name:"علك نازار",price:500},
+{name:"ماستر شيبس كبيرة",price:1000},
+{name:"ماستر شيبس 48ق",price:780},
+{name:"هاكر قرعة",price:350},
+{name:"ماكس كريم",price:89},
+{name:"ماكسن سوداء",price:80},
+{name:"ماكسن شكارة",price:450},
+{name:"ماكسن طابلة",price:68},
+{name:"ماكسوال هاوس",price:3800},
+{name:"ماكسي امين",price:290},
+{name:"ماكسي ديو",price:200},
+{name:"ماكسي كلاص",price:200},
+{name:"ماكسي كلاص طابلة",price:35},
+{name:"ماكسي كيك",price:300},
+{name:"مافينو",price:75},
+{name:"ميرانق ماقنوم",price:300},
+{name:"شيبس لذيذة بدون",price:800},
+{name:"وندر طويز",price:700},
+{name:"نبايل ماء 100",price:100},
+{name:"نبايل ماء 500ق",price:400},
+{name:"نبايل هابي بيرثداي",price:300},
+{name:"نبايل مرقازة",price:500},
+{name:"نبايل بالون",price:300},
+{name:"نبايل دودة",price:500},
+{name:"نبايل sp",price:400},
+{name:"وافر شوكو",price:1150},
+{name:"وافرز فانيلا",price:64},
+{name:"وافرز شوكو",price:64},
+{name:"ويسلي",price:520},
+{name:"وردينو",price:500},
+{name:"زريعة ليستار بدون",price:1500},
+{name:"وسيم",price:530},
+{name:"لينو 80ق",price:340},
+{name:"لينو احمر",price:350},
+{name:"لينو بيق وان",price:400},
+{name:"مينوس100ق",price:400},
+{name:"ليلاز 100",price:100},
+{name:"نخلة السلطان",price:420},
+{name:"مينتو فراش",price:250},
+{name:"ميني اولمبيك",price:600},
+{name:"ميني كونز",price:800},
+{name:"نينجة ستيك",price:600},
+{name:"ميليستا",price:250},
+{name:"ميلك بالس",price:300},
+{name:"ليا",price:200},
+{name:"نيبال باط",price:600},
+{name:"لحبيب 200ق",price:400},
+{name:"لحبيب دلاع",price:220},
+{name:"لحبيب فقاع",price:320},
+{name:"ميدور",price:430},
+{name:"ميرانق بسينة",price:520},
+{name:"ميرفالين",price:500},
+{name:"نيستيلا",price:410},
+{name:"ميستر قوتي",price:420},
+{name:"ميشكو بار",price:470},
+{name:"ميشكوكو",price:500},
+{name:"ليكو",price:430},
+{name:"ميكسو بدون 2كلغ",price:1400},
+{name:"ميكسي",price:210},
+{name:"نيفادا 7ق",price:290},
+{name:"ميقالينا",price:500},
+{name:"مسرغين",price:185},
+{name:"نسكافيه",price:3100},
+{name:"لصقة الاكوندا",price:280},
+{name:"لصقة بيترو",price:300},
+{name:"مكرون",price:800},
+{name:"نعناع فارفان",price:150},
+{name:"مغرف 2.5كلغ",price:650},
+{name:"مغرف 2كلغ",price:900},
+{name:"مغرف 2كلغ شفافة",price:950},
+{name:"مغرف 3كلغ",price:850},
+{name:"مغرف 500غ",price:200},
+{name:"مغرف 5كلغ",price:650},
+{name:"مفاجاة حوتة",price:520},
+{name:"مفاجئة باط",price:520},
+{name:"مفاجئة كيدار",price:700},
+{name:"لطيف",price:500},
+{name:"لطيف سيرما",price:550},
+{name:"المهاري فانيلا شوكو فراولة",price:440},
+{name:"المهاري 24ق فراز",price:480},
+{name:"المهاري 24ق شوكو",price:480},
+{name:"المهاري حروف",price:440},
+{name:"أوبتيلا دايبة",price:450},
+{name:"امباسادور",price:205},
+{name:"اليا",price:200},
+{name:"الحامضة 100ق",price:800},
+{name:"امير قوم",price:450},
+{name:"الروضة 2كلغ",price:1360},
+{name:"الرايس مهدي",price:500},
+{name:"العائلة",price:650},
+{name:"حلوى العين 55ق",price:1350},
+{name:"قوفريط طيار ليمون",price:55},
+{name:"قوفريط طيار شوكو",price:55},
+{name:"ايزم بيضاء",price:600},
+{name:"ايزم حمراء",price:600},
+{name:"ايزم خضراء",price:600},
+{name:"ايزم صفراء",price:600},
+{name:"ايزم وردي",price:600},
+{name:"ايزم سوداء",price:600},
+{name:"ايزم زرقاء",price:600},
+{name:"ايزم بنفسجي",price:600},
+{name:"ايزم ستيك",price:1000},
+{name:"ايزم كانيت",price:420},
+{name:"ايزي",price:650},
+{name:"ار اس ديو",price:410},
+{name:"اروى كبيرة رمان",price:430},
+{name:"اروى صغيرة رمان",price:430},
+{name:"اروى كبيرة برتقال",price:430},
+{name:"اروى صغيرة عنب",price:400},
+{name:"لطيف ازمو",price:330},
+{name:"اشمول 1.5ل",price:180},
+{name:"افانتاج",price:100},
+{name:"افروي",price:510},
+{name:"افروي حليب",price:540},
+{name:"افري ماء صغير",price:200},
+{name:"بناشي",price:200},
+{name:"تماكس",price:200},
+{name:"بووم",price:500},
+{name:"تونر",price:340},
+{name:"تونر كبير",price:520},
+{name:"توت مروة",price:300},
+{name:"بوب كورن",price:750},
+{name:"بوب كورن 66ق",price:520},
+{name:"بوب كورن ازمير",price:680},
+{name:"بوب كورن بسينة",price:850},
+{name:"بوب كورن كاس",price:800},
+{name:"بوبينق كاندي 2.5كلغ",price:1800},
+{name:"توينو",price:440},
+{name:"توينكي",price:650},
+{name:"شيكولا ذايبة تويتي",price:430},
+{name:"تويتي 50ق",price:420},
+{name:"تويتي طابلة 35",price:35},
+{name:"بودي 48ق",price:200},
+{name:"تورنادو / ستون",price:420},
+{name:"تورتا",price:440},
+{name:"بوكيمون",price:650},
+{name:"بوقلاز 1.5ل",price:200},
+{name:"بوقلاز 1ل",price:170},
+{name:"بوقلاز صغيرة",price:200},
+{name:"بنده جوي",price:640},
+{name:"تالنت طابلة ص 46",price:46},
+{name:"بالبون",price:260},
+{name:"شيكولا بايت 65",price:65},
+{name:"تارتولينو",price:440},
+{name:"باشا شكارة",price:430},
+{name:"باستي سبي ماط",price:180},
+{name:"تاك تيك 50ق",price:800},
+{name:"باكيطو",price:200},
+{name:"باط تاع البيتزا",price:630},
+{name:"بيبس",price:430},
+{name:"بيمو",price:102.5},
+{name:"تيمو 24ق",price:220},
+{name:"تيمو مابار",price:550},
+{name:"بيلوكس",price:800},
+{name:"بيلوكس شوكولاطة",price:1000},
+{name:"بيلة لاد كبيرة",price:720},
+{name:"تيانتي",price:630},
+{name:"بيتر مارتينازي رمان",price:440},
+{name:"بيتر مارتينازي موخيطو",price:440},
+{name:"بيتر مارتينازي بيضاء",price:440},
+{name:"مفاجئة سوربريز عضام",price:500},
+{name:"بيستو ازرق",price:620},
+{name:"بيستو بلانكو",price:500},
+{name:"بيكطول/بيكتول",price:2040},
+{name:"قيطان / قاط",price:300},
+{name:"برينو صغير",price:440},
+{name:"شرشال ك",price:500},
+{name:"قديلة ص",price:200},
+{name:"طوب فروي",price:500},
+{name:"طاسيلي",price:390},
+{name:"طرشاق كبير",price:2830},
+{name:"طرشاق خيبر",price:1750},
+{name:"قوفريط بيرلا 47.5",price:47.5},
+{name:"قوفريط دوبل ميكس فاني",price:110},
+{name:"قوفريط دوبل ميكس بنان",price:110},
+{name:"قوفريط دوبل ميكس وردي",price:110},
+{name:"قوفريط حليمو",price:430},
+{name:"قوفريط رياض ازرق",price:430},
+{name:"قوفريط رياض اخضر",price:430},
+{name:"قوفريط رياض ابيض",price:430},
+{name:"قوفريط رياض وردي",price:430},
+{name:"قومينولا",price:700},
+{name:"قوبلي 100ق",price:230},
+{name:"قوبلي قهوة متوسط 4.5",price:60},
+{name:"كارطون قوبلي متوسط",price:1150},
+{name:"قوبلي قهوة كبير 6.0",price:90},
+{name:"قوبلي 100ق ايام باك",price:115},
+{name:"قوستي اوفال",price:1150},
+{name:"قوستي جينواز اصفر",price:132.5},
+{name:"قوستي جينواز ازرق",price:132.5},
+{name:"روند قوف بيضاء",price:500},
+{name:"روند قوف سوداء",price:500},
+{name:"قوفريط ممتاز",price:300},
+{name:"علك بيف 100ق",price:300},
+{name:"بيق بان",price:110},
+{name:"برالين",price:480},
+{name:"برافا طابلة",price:145},
+{name:"شامية 100غ",price:53},
+{name:"شامية 24ق",price:210},
+{name:"شامية 350غ",price:275},
+{name:"شامية 4.5كلغ",price:2330},
+{name:"شامية الروضة",price:1800},
+{name:"شامية الروضة شوكولاطة",price:1850},
+{name:"شامية تسالي 3كلغ",price:1800},
+{name:"شامية شهرزاد فانيلا",price:480},
+{name:"شامية شهرزاد شوكو",price:480},
+{name:"شامية 350غ شهرزاد",price:300},
+{name:"شامية سيد الشيخ 350غ",price:300},
+{name:"شامية السلطان",price:260},
+{name:"شابة لوز",price:205},
+{name:"شابة نوازات",price:205},
+{name:"شابة حليب",price:190},
+{name:"شابة صغيرة",price:50},
+{name:"شاي مالكوتي",price:185},
+{name:"صاشي 15كلغ",price:85},
+{name:"صاي 5كلغ",price:45},
+{name:"صاشي منتوج بلادي",price:120},
+{name:"صاشي طراباندو",price:100},
+{name:"صاشي قمامة كبيرة",price:280},
+{name:"صاشي قمامة حجم كبير",price:230},
+{name:"صاشي قمامة حجم صغير",price:100},
+{name:"صاشي تجميد",price:25},
+{name:"صاشي بيض",price:40},
+{name:"صاشي فارماسي",price:25},
+{name:"صاشي كاوكاو",price:25},
+{name:"علك لحبيب اخضر",price:210},
+{name:"علك لحبيب ازرق",price:210},
+{name:"علك لحبيب وردي",price:210},
+{name:"علك لحبيب اصفر",price:210},
+{name:"علك بلوش",price:150},
+{name:"علك باندا",price:350},
+{name:"علك بيكو",price:750},
+{name:"علك بيف",price:220},
+{name:"علك برقر",price:200},
+{name:"علك سورتي",price:200},
+{name:"علك شرقي",price:290},
+{name:"علك كوبوي",price:230},
+{name:"علك كبريس ستيك دلاع",price:300},
+{name:"علك كبريس ستيك نعناع",price:300},
+{name:"علك كبريس ستيك ريقليز",price:300},
+{name:"علك كبريس شكارة",price:265},
+{name:"علك فلوريدا",price:480},
+{name:"علك قوم باي",price:700},
+{name:"علك ويندي دخان",price:250},
+{name:"ستار ماكس",price:350},
+{name:"ستار ماكس باستي",price:145},
+{name:"ستار ماكس قرعة",price:135},
+{name:"ستار ميلك",price:460},
+{name:"ستيكس",price:440},
+{name:"سي سي بون",price:280},
+{name:"صحن بلاستيكي",price:100},
+{name:"زينو تريكس",price:510},
+{name:"شيواوا شكارة",price:710},
+{name:"سينتاس 210ق",price:2750},
+{name:"حلوى سينيال باط",price:600},
+{name:"سيليكتو 33سل",price:440},
+{name:"سيلكا",price:400},
+{name:"لام مقصوص 100ق",price:450},
+{name:"لام سيبار",price:1700},
+{name:"شيبس مهبول",price:500},
+{name:"شيبس مهبول 20دج",price:780},
+{name:"شيبس لوكس",price:800},
+{name:"شيبس العائلة",price:1000},
+{name:"شيبس بدون تاكي تاكي",price:600},
+{name:"شيبس تيمو 10دج",price:500},
+{name:"شيبس تيمو 5دج",price:400},
+{name:"شيبس بدون شواء فرماج حار بيتزا",price:750},
+{name:"شيبس جومبو",price:650},
+{name:"شيبس ريفكا",price:1050},
+{name:"شيبس شكارة",price:400},
+{name:"شيبس ZAP",price:500},
+{name:"شيبس طيبة",price:620},
+{name:"شيكو ميكو",price:900},
+{name:"سيد قوم",price:700},
+{name:"كينيتيكس",price:420},
+{name:"كينق انس",price:280},
+{name:"كيدي صغير",price:1460},
+{name:"كيدي كبير",price:1400},
+{name:"عود شواء",price:75},
+{name:"علك امين",price:300},
+{name:"علك نيفادا 5ق",price:240},
+{name:"علك نيفادا 200ق نعناع",price:460},
+{name:"علك نيفادا 200ق ليمون",price:460},
+{name:"علك نيفادا 200ق ازرق",price:460},
+{name:"علك نيفادا 200ق وردي",price:460},
+{name:"علك وشام ساعة",price:830},
+{name:"علك نايا",price:630},
+{name:"كاوكاو رامي 50ق",price:450},
+{name:"كانديا كبير",price:840},
+{name:"كانديا صغير",price:570},
+{name:"تريكس كاوكاوية",price:500},
+{name:"كبريس 200ق دلاع",price:490},
+{name:"كبريس 200ق نعناع",price:490},
+{name:"كبريس 200ق فراز",price:480},
+{name:"كبريس 5في5",price:80},
+{name:"كينوس",price:210},
+{name:"كينوس بلارة او باط",price:400},
+{name:"كوجاك قود بوب",price:250},
+{name:"كاوكاو رامي",price:850},
+{name:"كاوكاو ماي بدون",price:2250},
+{name:"كاوكاو نودز بدون",price:1750},
+{name:"كاوكاو بدون نوتيس 5كلغ",price:2000},
+{name:"كاوكاو الجوهرة",price:340},
+{name:"كاوكاو الهظاب 50ق",price:430},
+{name:"كاوكاو ميكسو 2.5كلغ",price:1050},
+{name:"كاوكاو نوتيس 10دج",price:440},
+{name:"حلوى كالكولا",price:220},
+{name:"كوكيز يومي",price:410},
+{name:"كورنيطو",price:180},
+{name:"كورني بلايتا",price:900},
+{name:"شيكوباي",price:300},
+{name:"زيقومار",price:600},
+{name:"زيقومار شكارة",price:530},
+{name:"سيقار بجاوي",price:1000},
+{name:"صرافط",price:30},
+{name:"زردينو",price:500},
+{name:"زريعة5دج",price:420},
+{name:"ماماميا خضراء",price:710},
+{name:"ماماميا جبن",price:720},
+{name:"ماماميا حارة",price:720},
+{name:"ماماميا شواء",price:720},
+{name:"ماماميا طماطم",price:720},
+{name:"زريعة اليقطين 1كلغ غير مقشرة",price:1000},
+{name:"زريعة اليقطين مقشرة و محمصة",price:1400},
+{name:"زريعة اليقطين مقشرة فقط",price:1000},
+{name:"زريعة 50دج جبن",price:850},
+{name:"زريعة 50دج شواء",price:850},
+{name:"زريعة 50دج خضراء",price:850},
+{name:"زريعة 50دج حارة",price:850},
+{name:"زريعة 50دج طماطم",price:850},
+{name:"زريعة 50دج صفراء",price:850},
+{name:"زريعة 50دج شيواوا",price:850},
+{name:"منى كبيرة بيضاء",price:92},
+{name:"منى كبيرة حمراء",price:92},
+{name:"منى كبيرة زرقاء",price:92},
+{name:"منى كبيرة خضراء",price:92},
+{name:"منى صغيرة",price:34},
+{name:"سكوزا",price:500},
+{name:"كول",price:510},
+{name:"ماكسن حجم صغير",price:510},
+{name:"كوجاك لابوبو",price:980},
+{name:"كوجاك اوبيرا",price:200},
+{name:"كوجاك حامضة اتوميك",price:1400},
+{name:"كوجاك ايزم",price:850},
+{name:"كوجاك تريبلو",price:840},
+{name:"كوجاك تكاتا",price:820},
+{name:"كوجاك دراقون",price:350},
+{name:"كوجاك شويبسو",price:850},
+{name:"كوجاك شويبسي 150ق",price:650},
+{name:"كوجاك شويبسي",price:850},
+{name:"كوجاك شويبسي شكارة",price:200},
+{name:"كوجاك سميتشو",price:870},
+{name:"كوجاك فرانكي",price:630},
+{name:"كوجاك فريزة",price:200},
+{name:"فيشي افري نورمال صغير",price:310},
+{name:"فيشي افري ليمون",price:380},
+{name:"فيشي افري نعناع",price:380}
+
+];
+
+const cart={},cartList=document.getElementById('cartList'),totalPrice=document.getElementById('totalPrice'),productList=document.getElementById('productList');
+
+function showSection(id){
+  document.querySelectorAll('.card').forEach(d=>d.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function displayProducts(){
+  productList.innerHTML="";
+  products.forEach(p=>{
+    const div=document.createElement('div');
+    div.classList.add('product');
+    div.dataset.name=p.name;
+    div.dataset.price=p.price;
+    div.innerHTML=`<span>${p.name} — ${p.price} دج</span>
+    <div class="quantity-controls">
+      <button onclick="changeQty(this,-1)">−</button>
+      <span>0</span>
+      <button onclick="changeQty(this,1)">+</button>
+    </div>`;
+    productList.appendChild(div);
+  });
+}
+
+function filterProducts(){
+  const f=document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('.product').forEach(p=>{
+    p.style.display=p.dataset.name.toLowerCase().includes(f)?'flex':'none';
+  });
+}
+
+function changeQty(btn,delta){
+  const productDiv=btn.closest('.product'),name=productDiv.dataset.name,price=parseFloat(productDiv.dataset.price),span=productDiv.querySelector('span:nth-child(2)');
+  let qty=parseInt(span.textContent)+delta;
+  if(qty<0) qty=0;
+  span.textContent=qty;
+  if(qty>0) cart[name]={qty,price}; else delete cart[name];
+  updateCart();
+}
+
+function updateCart(){
+  cartList.innerHTML='';
+  let total=0;
+  const keys=Object.keys(cart);
+  if(keys.length===0){cartList.innerHTML='<div class="empty-cart">السلة فارغة حالياً</div>';totalPrice.textContent="0 دج";return;}
+  keys.forEach(name=>{
+    const item=cart[name];
+    total+=item.qty*item.price;
+    const div=document.createElement('div');
+    div.classList.add('cart-item');
+    div.innerHTML=`<span>${name} × ${item.qty}</span>
+    <div><span>${item.qty*item.price} دج</span><button onclick="removeItem('${name}')">&times;</button></div>`;
+    cartList.appendChild(div);
+  });
+  totalPrice.textContent=`${total.toLocaleString()} دج`;
+}
+
+function removeItem(name){
+  delete cart[name];
+  document.querySelectorAll('.product').forEach(p=>{if(p.dataset.name===name) p.querySelector('span:nth-child(2)').textContent=0});
+  updateCart();
+}
+
+function showCustomerForm(){
+  const total=Object.values(cart).reduce((sum,item)=>sum+item.qty*item.price,0);
+  if(total===0){ alert("يرجى اختيار منتج واحد على الأقل."); return; }
+  showSection('customerSection');
+}
+
+function submitOrder() {
+  const firstName = document.getElementById('firstName').value;
+  const lastName = document.getElementById('lastName').value;
+  const address = document.getElementById('address').value;
+  const phone = document.getElementById('phone').value;
+
+  if(!firstName || !lastName || !address || !phone){
+    alert("يرجى ملء جميع الحقول.");
+    return;
+  }
+
+  const order = {
+    customer: { firstName, lastName, address, phone },
+    items: Object.keys(cart).map(name => ({ name, qty: cart[name].qty, price: cart[name].price })),
+    total: Object.values(cart).reduce((sum,item)=>sum+item.qty*item.price,0),
+    date: new Date().toLocaleString()
+  };
+
+  fetch('http://localhost:3000/orders', {  // عنوان السيرفر
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(order)
+  })
+  .then(res => res.text())
+  .then(res => {
+    alert(res);
+    Object.keys(cart).forEach(name => delete cart[name]);
+    updateCart();
+    document.getElementById('firstName').value="";
+    document.getElementById('lastName').value="";
+    document.getElementById('address').value="";
+    document.getElementById('phone').value="";
+    showSection('home');
+  })
+  .catch(err => alert("❌ حدث خطأ في إرسال الطلب"));
+}
+
+displayProducts();
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الطلبات - MG STORE</title>
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #0b0f1f;
+  color: #fff;
+  margin: 0;
+  padding: 20px;
+}
+h1 { color: #488aec; text-align: center; margin-bottom: 30px; }
+
+.order-card {
+  background: #1a1f3d;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  position: relative;
+}
+.order-card h2 {
+  color: #488aec;
+  margin-bottom: 10px;
+}
+.order-card p {
+  margin: 5px 0;
+}
+.order-card table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+.order-card table, .order-card th, .order-card td {
+  border: 1px solid #fff;
+}
+.order-card th, .order-card td {
+  padding: 8px;
+  text-align: center;
+}
+.total {
+  font-weight: 700;
+  text-align: right;
+  margin-top: 10px;
+}
+button {
+  background: #488aec;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+button:hover { background: #3a6fc2; }
+
+.status-new { color: #488aec; font-weight: bold; }
+.status-processing { color: #ffa500; font-weight: bold; }
+.status-delivered { color: #4caf50; font-weight: bold; }
+.status-cancelled { color: #f44336; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>لوحة الطلبات - MG STORE</h1>
+<div id="orders"></div>
+
+<script>
+async function loadOrders() {
+  const res = await fetch('http://localhost:3000/admin/orders');
+  const orders = await res.json();
+  const ordersDiv = document.getElementById('orders');
+  ordersDiv.innerHTML = '';
+
+  orders.forEach((order, index) => {
+    const card = document.createElement('div');
+    card.className = 'order-card';
+
+    // جدول المنتجات
+    let itemsHTML = '<table><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>المجموع</th></tr>';
+    order.items.forEach(item => {
+      itemsHTML += `<tr>
+        <td>${item.name}</td>
+        <td>${item.qty}</td>
+        <td>${item.price.toLocaleString()} دج</td>
+        <td>${(item.qty * item.price).toLocaleString()} دج</td>
+      </tr>`;
+    });
+    itemsHTML += '</table>';
+
+    // تحديد لون الحالة
+    let statusClass = '';
+    const status = order.status || 'جديد';
+    if(status === 'جديد') statusClass = 'status-new';
+    else if(status === 'قيد التنفيذ') statusClass = 'status-processing';
+    else if(status === 'تم التوصيل') statusClass = 'status-delivered';
+    else if(status === 'ملغى') statusClass = 'status-cancelled';
+
+    card.innerHTML = `
+      <h2>طلب #${index + 1}</h2>
+      <p><strong>الاسم:</strong> ${order.customer.firstName} ${order.customer.lastName}</p>
+      <p><strong>الهاتف:</strong> ${order.customer.phone}</p>
+      <p><strong>العنوان:</strong> ${order.customer.address}</p>
+      <p><strong>الحالة:</strong> <span id="status-${index}" class="${statusClass}">${status}</span></p>
+      <select id="status-select-${index}">
+        <option value="جديد">جديد</option>
+        <option value="قيد التنفيذ">قيد التنفيذ</option>
+        <option value="تم التوصيل">تم التوصيل</option>
+        <option value="ملغى">ملغى</option>
+      </select>
+      <div>${itemsHTML}</div>
+      <div class="total"><strong>الإجمالي:</strong> ${order.total.toLocaleString()} دج</div>
+      <p><strong>التاريخ:</strong> ${order.date}</p>
+      <button onclick="updateStatus(${index})">تحديث الحالة</button>
+      <button onclick="deleteOrder(${index})">حذف الطلب</button>
+      <button onclick="printInvoice(${index})">طباعة الفاتورة</button>
+    `;
+    ordersDiv.appendChild(card);
+  });
+}
+
+// تحديث حالة الطلب
+async function updateStatus(index) {
+  const select = document.getElementById(`status-select-${index}`);
+  const status = select.value;
+  await fetch(`http://localhost:3000/admin/orders/${index}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+  const statusSpan = document.getElementById(`status-${index}`);
+  statusSpan.textContent = status;
+  statusSpan.className = '';
+  if(status === 'جديد') statusSpan.className = 'status-new';
+  else if(status === 'قيد التنفيذ') statusSpan.className = 'status-processing';
+  else if(status === 'تم التوصيل') statusSpan.className = 'status-delivered';
+  else if(status === 'ملغى') statusSpan.className = 'status-cancelled';
+  alert("✅ تم تحديث الحالة");
+}
+
+// حذف الطلب
+async function loadOrders() {
+  const res = await fetch('http://localhost:3000/admin/orders');
+  const orders = await res.json();
+  const ordersDiv = document.getElementById('orders');
+  ordersDiv.innerHTML = '';
+
+  orders.forEach(order => {
+    const card = document.createElement('div');
+    card.className = 'order-card';
+    if (order.status === "تم التوصيل") card.style.backgroundColor = "#2e7d32"; // أخضر
+
+    let itemsHTML = '<table><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>المجموع</th></tr>';
+    order.items.forEach(item => {
+      itemsHTML += `<tr>
+        <td>${item.name}</td>
+        <td>${item.qty}</td>
+        <td>${item.price.toLocaleString()} دج</td>
+        <td>${(item.qty * item.price).toLocaleString()} دج</td>
+      </tr>`;
+    });
+    itemsHTML += '</table>';
+
+    card.innerHTML = `
+      <h2>طلب #${order.id}</h2>
+      <p><strong>الاسم:</strong> ${order.customer.firstName} ${order.customer.lastName}</p>
+      <p><strong>الهاتف:</strong> ${order.customer.phone}</p>
+      <p><strong>العنوان:</strong> ${order.customer.address}</p>
+      <p><strong>الحالة:</strong> <span id="status-${order.id}">${order.status}</span></p>
+      <select id="status-select-${order.id}">
+        <option value="مازال">مازال</option>
+        <option value="تم التوصيل">تم التوصيل</option>
+      </select>
+      <div>${itemsHTML}</div>
+      <div class="total"><strong>الإجمالي:</strong> ${order.total.toLocaleString()} دج</div>
+      <p><strong>التاريخ:</strong> ${order.date}</p>
+      <button onclick="updateStatus('${order.id}')">تحديث الحالة</button>
+      <button onclick="deleteOrder('${order.id}')">حذف الطلب</button>
+    `;
+    ordersDiv.appendChild(card);
+  });
+}
+
+async function updateStatus(id) {
+  const select = document.getElementById(`status-select-${id}`);
+  const status = select.value;
+  await fetch(`http://localhost:3000/admin/orders/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+  const statusSpan = document.getElementById(`status-${id}`);
+  statusSpan.textContent = status;
+  loadOrders(); // إعادة تحميل الطلبات لتحديث اللون
+}
+
+async function deleteOrder(id) {
+  if(!confirm("هل تريد حذف هذا الطلب؟")) return;
+  await fetch(`http://localhost:3000/admin/orders/${id}`, { method: 'DELETE' });
+  loadOrders(); // إعادة تحميل الطلبات بعد الحذف
+}
+
+// تحميل الطلبات عند فتح الصفحة
+loadOrders();
+
+// طباعة الطلب
+function printInvoice(index) {
+  const card = document.getElementsByClassName('order-card')[index];
+  const w = window.open('', '', 'width=800,height=600');
+  w.document.write('<html><head><title>فاتورة الطلب</title></head><body>');
+  w.document.write(card.innerHTML);
+  w.document.write('</body></html>');
+  w.document.close();
+  w.print();
+}
+
+// تحميل الطلبات عند فتح الصفحة
+loadOrders();
+</script>
+</body>
+</html>

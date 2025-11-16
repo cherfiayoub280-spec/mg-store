@@ -1,0 +1,104 @@
+[
+  {
+    "customer": {
+      "firstName": "ayoub",
+      "lastName": "Facts",
+      "address": "قاقااقاققااق",
+      "phone": "0774436476"
+    },
+    "items": [
+      {
+        "name": "برينو كبير شوكو",
+        "qty": 5,
+        "price": 600
+      }
+    ],
+    "total": 3000,
+    "date": "11/16/2025, 3:36:01 PM"
+  },
+  {
+    "customer": {
+      "firstName": "ayoub",
+      "lastName": "cherfi",
+      "address": "بياىيفبق",
+      "phone": "0774436476"
+    },
+    "items": [
+      {
+        "name": "برينو كبير شوكو",
+        "qty": 8,
+        "price": 600
+      }
+    ],
+    "total": 4800,
+    "date": "11/16/2025, 3:36:31 PM"
+  },
+  {
+    "customer": {
+      "firstName": "ayoub",
+      "lastName": "Facts",
+      "address": "ك",
+      "phone": "0774436476"
+    },
+    "items": [
+      {
+        "name": "برينو كبير شوكو",
+        "qty": 11,
+        "price": 600
+      }
+    ],
+    "total": 6600,
+    "date": "11/16/2025, 3:41:21 PM"
+  },
+  {
+    "customer": {
+      "firstName": "FitF",
+      "lastName": "Facts",
+      "address": "ع",
+      "phone": "0774436476"
+    },
+    "items": [
+      {
+        "name": "برينو كبير شوكو",
+        "qty": 13,
+        "price": 600
+      }
+    ],
+    "total": 7800,
+    "date": "11/16/2025, 3:42:58 PM"
+  },
+  {
+    "customer": {
+      "firstName": "ففا",
+      "lastName": "افثاف",
+      "address": "فث",
+      "phone": "0774436476"
+    },
+    "items": [
+      {
+        "name": "برينو كبير شوكو",
+        "qty": 14,
+        "price": 600
+      }
+    ],
+    "total": 8400,
+    "date": "11/16/2025, 3:44:34 PM"
+  },
+  {
+    "customer": {
+      "firstName": "ayoub",
+      "lastName": "Facts",
+      "address": "لا",
+      "phone": "0774436476"
+    },
+    "items": [
+      {
+        "name": "برينو كبير شوكو",
+        "qty": 19,
+        "price": 600
+      }
+    ],
+    "total": 11400,
+    "date": "11/16/2025, 3:59:26 PM"
+  }
+]
